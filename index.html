@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>FinWise - Google Sign In</title>
+  <script type="module">
+    // Firebase imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-analytics.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCj56ZyZGEwHaMvQFD6kTQ3AQ-cE_saxiY",
+      authDomain: "finwise-9cf55.firebaseapp.com",
+      projectId: "finwise-9cf55",
+      storageBucket: "finwise-9cf55.firebasestorage.app",
+      messagingSenderId: "46446867696",
+      appId: "1:46446867696:web:2d240e8603eae9b0cbbe35",
+      measurementId: "G-DXG5F24HQY"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    // Sign in function
+    window.signInWithGoogle = () => {
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          const user = result.user;
+          document.getElementById("result").innerHTML = `
+            <h3>Welcome, ${user.displayName}!</h3>
+            <p>Email: ${user.email}</p>
+            <img src="${user.photoURL}" width="100" style="border-radius: 50%;" />
+          `;
+        })
+        .catch((error) => {
+          console.error(error);
+          alert("Error: " + error.message);
+        });
+    };
+  </script>
+</head>
+<body style="font-family: Arial, sans-serif; text-align: center; margin-top: 50px;">
+  <h2>Sign in to FinWise</h2>
+  <button onclick="signInWithGoogle()" style="padding: 10px 20px; font-size: 16px;">
+    Sign in with Google
+  </button>
+  <div id="result" style="margin-top: 30px;"></div>
+</body>
+</html>
