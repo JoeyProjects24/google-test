@@ -1,49 +1,223 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Barcode Calorie Counter</title>
-    <style>
-        /* Add CSS later */
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Weather & Outfit</title>
+
+  <!-- Poppins font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* Base reset */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #1e2a38 0%, #283845 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #f0f4f8;
+      padding: 20px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 40px 35px 50px;
+      max-width: 380px;
+      width: 100%;
+      box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.12),
+        0 16px 48px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      color: #212121;
+      position: relative;
+    }
+
+    /* Location text */
+    .location {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #39404a;
+      margin-bottom: 18px;
+      letter-spacing: 0.03em;
+    }
+
+    /* Temperature with icon */
+    .temperature {
+      font-size: 5rem;
+      font-weight: 700;
+      color: #00796b;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 30px;
+      text-shadow: 0 0 8px rgba(0, 121, 107, 0.3);
+    }
+
+    /* Weather icon style */
+    .temp-icon {
+      width: 50px;
+      height: 50px;
+      fill: #00796b;
+      flex-shrink: 0;
+      filter: drop-shadow(0 0 2px rgba(0, 121, 107, 0.5));
+    }
+
+    /* Outfit recommendation */
+    .outfit {
+      font-size: 1.15rem;
+      font-weight: 500;
+      background: #e0f2f1;
+      color: #004d40;
+      padding: 14px 24px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 77, 64, 0.15);
+      max-width: 100%;
+      user-select: none;
+      line-height: 1.5;
+      letter-spacing: 0.01em;
+      transition: background-color 0.3s ease;
+    }
+    .outfit:hover {
+      background-color: #b2dfdb;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 400px) {
+      .card {
+        padding: 30px 25px 40px;
+      }
+      .temperature {
+        font-size: 3.5rem;
+        gap: 8px;
+      }
+      .temp-icon {
+        width: 36px;
+        height: 36px;
+      }
+      .outfit {
+        font-size: 1rem;
+        padding: 12px 20px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🍔 Scan Barcode</h1>
-        <input type="text" id="barcodeInput" placeholder="Enter barcode (e.g., 052100002268)">
-        <button onclick="fetchNutrition()">Search</button>
-        <div id="result"></div>
+
+  <div class="card" role="region" aria-label="Weather and outfit recommendation">
+    <div class="location" id="location">Loading location...</div>
+    <div class="temperature" id="temperature">
+      -- °C
+      <svg class="temp-icon" id="temp-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <!-- Placeholder icon; will be replaced dynamically -->
+        <circle cx="12" cy="12" r="10" stroke="none" />
+      </svg>
     </div>
-    <script>
-      
-      async function fetchNutrition() {
-    const barcode = document.getElementById('barcodeInput').value;
-    const appId = '48011cbc'; // Your Nutritionix appId
-    const apiKey = '57c09f9e862f62181a1d16d0b55ab82a'; // Your Nutritionix appKey
-    const apiUrl = `https://api.nutritionix.com/v2/search/item?upc=${barcode}&appId=${appId}&appKey=${apiKey}`;
+    <div class="outfit" id="outfit">Outfit:</div>
+  </div>
 
-    try {
-        const response = await fetch(apiUrl);
-        const data = await response.json();
-        
-        if (!data.foods || data.foods.length === 0) {
-            document.getElementById('result').innerHTML = "❌ Product not found!";
-            return;
-        }
+  <script>
+    const ipinfoToken = "ec023ae024c6f3"; // Replace with your IPinfo token
+    const weatherstackKey = "83432a2afe87f5947e6fd6828005d3c8"; // Replace with your Weatherstack key
 
-        const food = data.foods[0];
-        const html = `
-            <h3>${food.food_name}</h3>
-            <p>Calories: ${food.nf_calories ?? 'N/A'}</p>
-            <p>Protein: ${food.nf_protein ?? 'N/A'}g</p>
-            <p>Sugar: ${food.nf_sugars ?? 'N/A'}g</p>
-        `;
-        document.getElementById('result').innerHTML = html;
-
-    } catch (error) {
-        document.getElementById('result').innerHTML = "⚠️ Error: " + error.message;
+    // Outfit suggestions
+    function suggestOutfit(tempC) {
+      if (tempC < 0) return "Heavy coat, scarf, gloves, boots";
+      if (tempC < 10) return "Coat/jacket, sweater, closed shoes";
+      if (tempC < 20) return "Light jacket, long sleeves, jeans";
+      if (tempC < 30) return "T-shirt, shorts, sneakers";
+      return "Tank top, shorts, sandals";
     }
-}
 
-    </script>
+    // Choose an SVG icon based on temperature for simplicity
+    function getWeatherIcon(tempC) {
+      if (tempC < 0) {
+        // Snowflake icon
+        return `<svg class="temp-icon" viewBox="0 0 24 24" fill="none" stroke="#00796b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <line x1="4" y1="7" x2="20" y2="17"/>
+          <line x1="20" y1="7" x2="4" y2="17"/>
+        </svg>`;
+      } else if (tempC < 10) {
+        // Cloudy icon
+        return `<svg class="temp-icon" viewBox="0 0 24 24" fill="none" stroke="#00796b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M16 16h3a4 4 0 0 0 0-8h-1"/>
+        </svg>`;
+      } else if (tempC < 20) {
+        // Partly cloudy sun icon
+        return `<svg class="temp-icon" viewBox="0 0 24 24" fill="none" stroke="#00796b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>`;
+      } else if (tempC < 30) {
+        // Sunny icon
+        return `<svg class="temp-icon" viewBox="0 0 24 24" fill="none" stroke="#00796b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>`;
+      } else {
+        // Hot / sunny icon with small heat waves
+        return `<svg class="temp-icon" viewBox="0 0 24 24" fill="none" stroke="#00796b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"/>
+          <path d="M16 8c2 2 2-2 0 0"/>
+          <path d="M8 16c-2-2-2 2 0 0"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+        </svg>`;
+      }
+    }
+
+    fetch(`https://ipinfo.io/json?token=${ipinfoToken}`)
+      .then(response => response.json())
+      .then(data => {
+        const place = data.city ? `${data.city}, ${data.region}` : data.region || "Unknown";
+        document.getElementById("location").textContent = place;
+
+        return fetch(`http://api.weatherstack.com/current?access_key=${weatherstackKey}&query=${encodeURIComponent(place)}`);
+      })
+      .then(response => response.json())
+      .then(weather => {
+        const temp = weather.current.temperature;
+        document.getElementById("temperature").childNodes[0].nodeValue = `${temp} °C `;
+
+        // Replace icon svg
+        document.getElementById("temp-icon").outerHTML = getWeatherIcon(temp);
+
+        document.getElementById("outfit").textContent = `Outfit: ${suggestOutfit(temp)}`;
+      })
+      .catch(err => {
+        document.getElementById("location").textContent = "Unable to fetch location";
+        document.getElementById("temperature").textContent = "-- °C";
+        document.getElementById("outfit").textContent = "Outfit:";
+      });
+  </script>
+
 </body>
 </html>
