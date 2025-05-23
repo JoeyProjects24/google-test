@@ -1,54 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>FinWise - Google Sign In</title>
-  <script type="module">
-    // Firebase imports
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-analytics.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyCj56ZyZGEwHaMvQFD6kTQ3AQ-cE_saxiY",
-      authDomain: "finwise-9cf55.firebaseapp.com",
-      projectId: "finwise-9cf55",
-      storageBucket: "finwise-9cf55.firebasestorage.app",
-      messagingSenderId: "46446867696",
-      appId: "1:46446867696:web:2d240e8603eae9b0cbbe35",
-      measurementId: "G-DXG5F24HQY"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-
-    // Sign in function
-    window.signInWithGoogle = () => {
-      signInWithPopup(auth, provider)
-        .then((result) => {
-          const user = result.user;
-          document.getElementById("result").innerHTML = `
-            <h3>Welcome, ${user.displayName}!</h3>
-            <p>Email: ${user.email}</p>
-            <img src="${user.photoURL}" width="100" style="border-radius: 50%;" />
-          `;
-        })
-        .catch((error) => {
-          console.error(error);
-          alert("Error: " + error.message);
-        });
-    };
-  </script>
+    <title>Barcode Calorie Counter</title>
+    <style>
+        /* Add CSS later */
+    </style>
 </head>
-<body style="font-family: Arial, sans-serif; text-align: center; margin-top: 50px;">
-  <h2>Sign in to FinWise</h2>
-  <button onclick="signInWithGoogle()" style="padding: 10px 20px; font-size: 16px;">
-    Sign in with Google
-  </button>
-  <div id="result" style="margin-top: 30px;"></div>
+<body>
+    <div class="container">
+        <h1>🍔 Scan Barcode</h1>
+        <input type="text" id="barcodeInput" placeholder="Enter barcode (e.g., 052100002268)">
+        <button onclick="fetchNutrition()">Search</button>
+        <div id="result"></div>
+    </div>
+    <script>
+      
+      async function fetchNutrition() {
+    const barcode = document.getElementById('barcodeInput').value;
+    const appId = '48011cbc'; // Your Nutritionix appId
+    const apiKey = '57c09f9e862f62181a1d16d0b55ab82a'; // Your Nutritionix appKey
+    const apiUrl = `https://api.nutritionix.com/v2/search/item?upc=${barcode}&appId=${appId}&appKey=${apiKey}`;
+
+    try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        
+        if (!data.foods || data.foods.length === 0) {
+            document.getElementById('result').innerHTML = "❌ Product not found!";
+            return;
+        }
+
+        const food = data.foods[0];
+        const html = `
+            <h3>${food.food_name}</h3>
+            <p>Calories: ${food.nf_calories ?? 'N/A'}</p>
+            <p>Protein: ${food.nf_protein ?? 'N/A'}g</p>
+            <p>Sugar: ${food.nf_sugars ?? 'N/A'}g</p>
+        `;
+        document.getElementById('result').innerHTML = html;
+
+    } catch (error) {
+        document.getElementById('result').innerHTML = "⚠️ Error: " + error.message;
+    }
+}
+
+    </script>
 </body>
 </html>
